@@ -6,12 +6,17 @@
 </head>
 <body>
     <h1>welcome to Chatroom</h1>
+    <p id='online-user'>現在の参加数：</p>
+    <p id="roomDiscription">部屋の説明：</p>
     <div>
         <div id="post-content-lists"></div>    
     </div>
     <input type="text" id="new-post-content"><button id="new-post-content-submit">送信</button>
 
-    <button id="delete-user">退会する</button>
+    <div>
+        <button id="delete-user">退会する</button>
+    </div>
+
 
     <script>
         //chatContentの表示
@@ -87,6 +92,12 @@
                 .then(() => fetchChatUsers())
                 .then(() => location.href='/')
         }
+
+        //オンラインユーザの取得
+        async function onlineUser() {
+            const onlineUser = document.querySelector('#online-user');
+
+        }   
 
         //初回のchatcontentの読み込み
         fetchChatContent();

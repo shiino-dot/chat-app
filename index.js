@@ -6,16 +6,47 @@ const { v4: uuidv4 } = require('uuid');
 //appを生成する
 const app = express();
 app.use(multer().none()); 
+app.use(express.static('web'));
 
-// ルートにアクセス
-app.get('/', (req, res) => 
-    res.sendFile(__dirname + '/web/index.html')
-);
 
-//ルームへのアクセス
+// //ルームへのアクセス
 app.get('/rooms/1' , (req, res) => {
     //chatroomのhtmlとcontentの取得
     res.sendFile(__dirname + '/web/chatRoom.html') && res.json(chatRoomContent);
+});
+
+
+//chatRoom一覧
+const chatRoomIndex = [];
+const Id = uuidv4();
+
+//ルームの追加
+app.get('/rooms/index', (req, res) => {
+     res.json(chatRoomIndex);
+});
+
+app.post('/rooms/add', (req, res) => {
+    const chatRoomData = req.body;
+    const chatRoomTitle = chatRoomData.title;
+    // const chatRoomDiscription = chatRoomData.discription;
+
+
+
+    const chatRoomItem = {
+        Id,
+        title: chatRoomTitle
+        // discription: chatRoomDiscription
+    };
+
+    chatRoomIndex.push(chatRoomItem);
+
+    console.log('add: ' + JSON.stringify(chatRoomItem));
+
+    res.json(chatRoomItem);
+});
+
+app.get(`/rooms/${Id}`, (req, res) => {
+    res.sendFile(__dirname + '/web/chatRoom.html');
 });
 
 
@@ -66,7 +97,7 @@ app.post('/api/v1/add', (req, res) => {
 });
 
 //userの削除
-app.delete('/api/v1/item/:id', (req, res) => {
+app.delete('/api/v1/item', (req, res) => {
     const index = chatRoomUsers.findIndex((item) => item.id == req.params.id);
 
     if(index >= 0) {

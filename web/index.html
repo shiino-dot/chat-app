@@ -7,13 +7,77 @@
 <body>
     <h1>ChatRoom</h1>
     <h2>ChatRoom一覧</h2>
-    <ul id="chatRoomIndex">
-        <li><a href="/rooms/1" class="chatroom">room1</a></li>
+    <ul id="chatRoomIndexes">
+        <!-- <li><a href="/rooms/1" class="chatroom">room1</a></li> -->
     </ul>
 
-    <script>
-        const enterChatRoom = document.querySelector('.chatroom');
+    <label>chatroom name</label><br>
+    <input type="text" id="newChatRoomName"><br>
 
+    <label>chatroom Description</label>
+    <div>
+        <textarea id="newChatRoomDiscription" cols="30" rows="10"></textarea>
+    </div>
+    <button id="newChatRoomButton">create</button>
+    </h2>
+
+    <script>
+        //chatroom一覧の表示
+        function renderChatRoomIndex(chatRoomIndex) {
+
+            const chatRoomContainer = document.querySelector("#chatRoomIndexes");
+
+            // chatRoomContainer.innerHTML = '';
+
+            //jsonの呼び出し
+            for(const eachChatRoom of chatRoomIndex) {
+                const li = document.createElement('li');
+                const a = document.createElement('a');
+                a.href = '/rooms/' + eachChatRoom.Id;
+                a.id= "chatroom";
+                const text = new Text(eachChatRoom.title);
+
+                a.appendChild(text);
+                li.appendChild(a);
+                chatRoomContainer.appendChild(li);
+            }
+        }
+
+
+        //chatroom一覧の取得
+        async function fetchChatRoomIndex() {
+            return fetch(`./rooms/index`)
+                .then((response) => response.json())
+                .then((chatRoomIndex) => {
+                    renderChatRoomIndex(chatRoomIndex);
+                })
+        }
+
+        //chatroomをpostする
+        async function postNewChatRoom(chatRoomItem) {
+            const body = new FormData();
+            body.append('title', chatRoomItem.title);
+            // body.append('discription',chatRoomItem.discription);
+
+            return fetch('./rooms/add', {
+                method: 'POST',
+                body
+            }).then((response) => response.json());
+        }
+
+        const newChatRoomNameInput = document.querySelector('#newChatRoomName');
+        const newChatRoomCreateButton = document.querySelector('#newChatRoomButton')
+
+        newChatRoomCreateButton.addEventListener('click', (event) => {
+            const title = newChatRoomNameInput.value;
+
+            if(title) {
+                postNewChatRoom({title}).then((item) => fetchChatRoomIndex());
+            }
+        });
+
+        //ルームクリック時のアクション
+        const enterChatRoom = document.querySelector('.chatroom');
         enterChatRoom.addEventListener('click', (event) => {
             const userName = prompt('what name?', '');
 
@@ -23,6 +87,9 @@
                 userName
             }).then((response) => response.json());
         })
+
+        //初回の読み込み
+        fetchChatRoomIndex();
     </script>
 </body>
 </html>
