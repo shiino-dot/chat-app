@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <title>ChatRooms</title>
+</head>
+<body>
+    <h1>ChatRoom</h1>
+    <h2>ChatRoom一覧</h2>
+    <ul id="chatRoomIndex">
+        <li><a href="/rooms/1" class="chatroom">room1</a></li>
+    </ul>
+
+    <script>
+        const enterChatRoom = document.querySelector('.chatroom');
+
+        enterChatRoom.addEventListener('click', (event) => {
+            const userName = prompt('what name?', '');
+
+        //userのpost
+            return fetch('../api/v1/add', {
+                method: 'POST',
+                userName
+            }).then((response) => response.json());
+        })
+    </script>
+</body>
+</html>

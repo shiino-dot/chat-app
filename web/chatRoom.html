@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="js">
+<head>
+    <meta charset="UTF-8">
+    <title>chatroom</title>
+</head>
+<body>
+    <h1>welcome to Chatroom</h1>
+    <div>
+        <div id="post-content-lists"></div>    
+    </div>
+    <input type="text" id="new-post-content"><button id="new-post-content-submit">送信</button>
+
+    <button id="delete-user">退会する</button>
+
+    <script>
+        //chatContentの表示
+        function renderChatContent(chatRoomContent) {
+            const chatContainer = document.querySelector('#post-content-lists');
+
+            chatContainer.innerHTML = '';
+
+            //投稿内容のjsonの取り出し
+            for(const message of chatRoomContent) {
+                const p = document.createElement('p');
+                const label = document.createElement('label');
+                const text = new Text(message.content);
+
+                label.appendChild(text);
+                p.appendChild(label);
+                chatContainer.appendChild(p);
+            }
+
+        }
+
+        //chatRoomContentの取得
+        async function fetchChatContent() {
+            return fetch('../api/v1/list')
+                .then((response) => response.json())
+                .then((chatRoomContent) => {
+                    renderChatContent(chatRoomContent);
+                })
+        }
+
+        //chatRoomUserの取得
+        async function fetchChatUsers() {
+            return fetch('../api/v1/list')
+                .then((response) => response.json())
+                .then((chatRoomUsers) => {
+                    renderChatContent(chatRoomUsers);
+                })
+        }
+
+        //chatContentのpost
+        async function postNewChatContent(chatItem) {
+            const body = new FormData();
+            body.append('content', chatItem.content);
+            body.append('postUserName',chatItem.postUserName);
+
+            return fetch('../api/v1/add', {
+                method: 'POST',
+                body
+            }).then((response) => response.json());
+        }
+
+        //postの処理
+        const newChatItemContentInput = document.querySelector('#new-post-content');
+        const newChatSubmitButton = document.querySelector('#new-post-content-submit');
+
+        newChatSubmitButton.addEventListener('click', (event) => {
+            const content = newChatItemContentInput.value;
+
+            if(content) {
+                postNewChatContent({content}).then((item) => fetchChatContent());
+            }
+        });
+
+
+        //delete-buttonの取得
+        const deleteUserButton = document.querySelector('#delete-user');
+        deleteUserButton.addEventListener('click', deleteUser);
+
+        //delete-userの処理
+        function deleteUser(event) {
+
+            fetch(`../api/v1/item`, {method: 'DELETE'})
+                .then(() => fetchChatUsers())
+                .then(() => location.href='/')
+        }
+
+        //初回のchatcontentの読み込み
+        fetchChatContent();
+    </script>
+</body>
+</html>
