@@ -39,7 +39,6 @@ app.post('/rooms/add', (req, res) => {
     const chatRoomDiscription = chatRoomData.discription;
 
 
-
     const chatRoomItem = {
         Id,
         title: chatRoomTitle,
@@ -56,7 +55,7 @@ app.post('/rooms/add', (req, res) => {
 
 //roomへのアクセス
 app.get(`/rooms/${Id}`, (req, res) => {
-    res.sendFile(__dirname + '/web/chatRoom.html');
+    res.sendFile(__dirname + '/web/chatRoom.html') && res.json(chatRoomIndex);
 });
 
 
@@ -67,7 +66,7 @@ const chatRoomUsers = [];
 //chatの内容の取得
 app.get(`/rooms/${Id}/info`, (req, res) => {
 
-    res.json(chatRoomContent) && res.json(chatRoomUsers);
+    res.json(chatRoomContent) && res.json(chatRoomUsers) && res.json(chatRoomIndex);
 });
 
 //chatでの投稿
@@ -115,6 +114,7 @@ app.delete(`/rooms/${Id}/add`, (req, res) => {
 
     res.sendStatus(200);
 });
+
 
 // ポート3000でサーバを立てる
 server.listen(3000, () => console.log('ChatApp listening on port 3000'));

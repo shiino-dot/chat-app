@@ -79,7 +79,7 @@
             const discription = newChatRoomDiscriptionText.value;
 
             if(title && discription) {
-                postNewChatRoom({title},{discription}).then((item) => fetchChatRoomIndex());
+                postNewChatRoom({title,discription}).then((item) => fetchChatRoomIndex());
             }
         });
 

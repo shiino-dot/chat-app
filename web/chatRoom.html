@@ -45,6 +45,23 @@
         //Idの取得
         const Id = location.href.slice(28);
 
+        // //rooms情報の取得
+        // async function getChatRoomInfo() {
+        //     return fetch(`../rooms/${Id}/info`)
+        //         .then((response) => response.json())
+        //         .then((chatRoomIndex) => {
+        //             getChatRoomDiscription(chatRoomIndex);
+        //         })
+        // }
+
+        // //説明文の設置
+        // function getChatRoomDiscription(chatRoomIndex) {
+        //     const chatRoominfo = document.querySelector('#roomDiscription');
+        //     const chatRoomDiscription = chatRoomIndex.discription;
+        //     const label = document.createElement('label');
+        //     label.appendChild(chatRoomDiscription);
+        // }
+
         //chatContentの表示
         function renderChatContent(chatRoomContent) {
             const chatContainer = document.querySelector('#post-content-lists');
@@ -128,6 +145,7 @@
 
         //初回のchatcontentの読み込み
         fetchChatContent();
+        getChatRoomInfo();
     </script>
 </body>
 </html>
