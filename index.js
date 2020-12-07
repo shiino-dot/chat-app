@@ -10,10 +10,6 @@ const { v4: uuidv4 } = require('uuid');
 
 app.use(multer().none()); 
 
-//chatRoom一覧
-const chatRoomIndex = [];
-const Id = uuidv4();
-
 //socket.ioの接続
 io.on('connection',(socket) => {
     console.log('chatRoom connected');
@@ -23,13 +19,20 @@ io.on('connection',(socket) => {
     });
 });
 
-app.get("/", (req, res) => {
+app.get("/", (req, res) => {    
     res.sendFile(__dirname + "/web/index.html");
 });
 
 
 //ルームの追加
 app.get('/rooms/index', (req, res) => {
+
+    //chatRoom一覧
+    const chatRoomIndex = [
+        {Id: 1, title:'room1', discription:'雑談用' },
+        {Id: 2, title:'room2', discription:'ミーティング' },
+    ];
+
     res.json(chatRoomIndex);
 });
 
@@ -37,8 +40,6 @@ app.post('/rooms/add', (req, res) => {
     const chatRoomData = req.body;
     const chatRoomTitle = chatRoomData.title;
     const chatRoomDiscription = chatRoomData.discription;
-
-
 
     const chatRoomItem = {
         Id,
@@ -54,8 +55,11 @@ app.post('/rooms/add', (req, res) => {
 });
 
 
+//Idが数字であれば
+// let Id = /^[0-9]+$/;
+
 //roomへのアクセス
-app.get(`/rooms/${Id}`, (req, res) => {
+app.get(`/rooms/1`　, (req, res) => {
     res.sendFile(__dirname + '/web/chatRoom.html');
 });
 
@@ -64,22 +68,24 @@ app.get(`/rooms/${Id}`, (req, res) => {
 const chatRoomContent = [];
 const chatRoomUsers = [];
 
+//ユーザの登録
+const userID = uuidv4();
+
+
 //chatの内容の取得
-app.get(`/rooms/${Id}/info`, (req, res) => {
+app.get(`/rooms/1/info`, (req, res) => {
 
     res.json(chatRoomContent) && res.json(chatRoomUsers);
 });
 
 //chatでの投稿
-app.post(`/rooms/${Id}/add`, (req, res) => {
+app.post(`/rooms/1/add`, (req, res) => {
     const chatData = req.body;
     const chatContent = chatData.content;
     const userName = req.userName;
 
     //chatの投稿
     const chatContentID = uuidv4();
-    //ユーザの登録
-    const userID = uuidv4();
 
     //ユーザ情報
     const userInfo = {
@@ -105,7 +111,7 @@ app.post(`/rooms/${Id}/add`, (req, res) => {
 });
 
 //userの削除
-app.delete(`/rooms/${Id}/add`, (req, res) => {
+app.delete(`/rooms/1/add`, (req, res) => {
     const index = chatRoomUsers.findIndex((item) => item.id == req.params.id);
 
     if(index >= 0) {

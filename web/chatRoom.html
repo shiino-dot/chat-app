@@ -5,7 +5,7 @@
     <title>chatroom</title>
 </head>
 <body>
-    <h1>welcome to Chatroom</h1>
+    <h1 id="chat-title">welcome to </h1>
     <p id='online-user'>現在の参加数：</p>
     <p id="roomDiscription">部屋の説明：</p>
     <div>
@@ -17,33 +17,32 @@
         <button id="delete-user">退会する</button>
     </div>
 
-    <script type="text/javascript" src="/socket.io/socket.io.js"></script>
     <script>
-        var socket = io.connect();
+        //titleの取得
+        async function fetchChatRoomInfo() {
+            return fetch(`../rooms/index`)
+                .then((response) => response.json())
+                .then((chatRoomIndex) => {
+                    getChatRoomInfo(chatRoomIndex)
+                })
+                .then(console.log('200 OK! chatroom conected!!'))
+        }
 
-        document.querySelector('#new-post-content-submit').addEventListener('click',(e) => {
+        function getChatRoomInfo(chatRoomIndex) {
+            const titleContainer = document.querySelector('#chat-title');
+            const discriptionContainer = document.querySelector('#roomDiscription');
 
-            const msg = document.querySelector('#new-post-content').value;
-            if( msg === ''){
-                return(false);
-            }
+            const title_label = document.createElement('label');
+            const title = new Text(chatRoomIndex[0].title);
+            const discription_label = document.createElement('label');
+            const discription = new Text(chatRoomIndex[0].discription);
 
-            //socketサーバへ送信
-            socket.emit('message', {text: msg});
+            title_label.appendChild(title);
+            discription_label.appendChild(discription);
 
-            msg.value = '';
-        });
-
-        socket.on('message-post', (msg) => {
-            const list = document.querySelector('#post-content-lists');
-            const p = document.createElement('p');
-            p.innerHTML = `${msg.text}`;
-            list.appendChild(p);
-        });
-
-
-        //Idの取得
-        const Id = location.href.slice(28);
+            titleContainer.appendChild(title_label);
+            discriptionContainer.appendChild(discription_label);
+        }
 
         //chatContentの表示
         function renderChatContent(chatRoomContent) {
@@ -66,7 +65,7 @@
 
         //chatRoomContentの取得
         async function fetchChatContent() {
-            return fetch(`../rooms/${Id}/info`)
+            return fetch(`../rooms/1/info`)
                 .then((response) => response.json())
                 .then((chatRoomContent) => {
                     renderChatContent(chatRoomContent);
@@ -75,7 +74,7 @@
 
         //chatRoomUserの取得
         async function fetchChatUsers() {
-            return fetch(`../rooms/${Id}/info`)
+            return fetch(`../rooms/1/info`)
                 .then((response) => response.json())
                 .then((chatRoomUsers) => {
                     renderChatContent(chatRoomUsers);
@@ -88,7 +87,7 @@
             body.append('content', chatItem.content);
             body.append('postUserName',chatItem.postUserName);
 
-            return fetch(`../rooms/${Id}/add`, {
+            return fetch(`../rooms/1/add`, {
                 method: 'POST',
                 body
             })
@@ -115,19 +114,16 @@
         //delete-userの処理
         function deleteUser(event) {
 
-            fetch(`../rooms/${Id}/info`, {method: 'DELETE'})
+            fetch(`../rooms/1/info`, {method: 'DELETE'})
                 .then(() => fetchChatUsers())
                 .then(() => location.href='/')
+                .then(console.log('deleted user')
+                )
         }
-
-        //オンラインユーザの取得
-        async function onlineUser() {
-            const onlineUser = document.querySelector('#online-user');
-
-        }   
 
         //初回のchatcontentの読み込み
         fetchChatContent();
+        fetchChatRoomInfo();
     </script>
 </body>
 </html>

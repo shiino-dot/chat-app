@@ -8,10 +8,9 @@
     <h1>ChatRoom</h1>
     <h2>ChatRoom一覧</h2>
     <ul id="chatRoomIndexes">
-        <!-- <li><a href="/rooms/1" class="chatroom">room1</a></li> -->
     </ul>
 
-    <label>chatroom name</label><br>
+    <!-- <label>chatroom name</label><br>
     <input type="text" id="newChatRoomName" name="title"><br>
 
     <label>chatroom Description</label>
@@ -19,7 +18,7 @@
         <textarea id="newChatRoomDiscription" name="discription" cols="30" rows="10"></textarea>
     </div>
     <button id="newChatRoomButton">create</button>
-    </h2>
+    </h2> -->
 
     <script>
         //初回の読み込み
@@ -92,7 +91,7 @@
                 const userName = prompt('what name?', '');
 
                 //userのpost
-                return fetch('../api/v1/add', {
+                return fetch('../rooms/1/add', {
                     method: 'POST',
                     userName
                 }).then((response) => response.json());
