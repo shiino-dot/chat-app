@@ -12,41 +12,46 @@
     </ul>
 
     <label>chatroom name</label><br>
-    <input type="text" id="newChatRoomName"><br>
+    <input type="text" id="newChatRoomName" name="title"><br>
 
     <label>chatroom Description</label>
     <div>
-        <textarea id="newChatRoomDiscription" cols="30" rows="10"></textarea>
+        <textarea id="newChatRoomDiscription" name="discription" cols="30" rows="10"></textarea>
     </div>
     <button id="newChatRoomButton">create</button>
     </h2>
 
     <script>
+        //初回の読み込み
+        fetchChatRoomIndex();
+
         //chatroom一覧の表示
         function renderChatRoomIndex(chatRoomIndex) {
 
             const chatRoomContainer = document.querySelector("#chatRoomIndexes");
 
-            // chatRoomContainer.innerHTML = '';
+            chatRoomContainer.innerHTML = '';
 
             //jsonの呼び出し
             for(const eachChatRoom of chatRoomIndex) {
                 const li = document.createElement('li');
                 const a = document.createElement('a');
                 a.href = '/rooms/' + eachChatRoom.Id;
-                a.id= "chatroom";
+                a.className= "chatroom";
                 const text = new Text(eachChatRoom.title);
 
                 a.appendChild(text);
                 li.appendChild(a);
                 chatRoomContainer.appendChild(li);
             }
+
+            getElementClass();
         }
 
 
         //chatroom一覧の取得
         async function fetchChatRoomIndex() {
-            return fetch(`./rooms/index`)
+            return fetch('./rooms/index')
                 .then((response) => response.json())
                 .then((chatRoomIndex) => {
                     renderChatRoomIndex(chatRoomIndex);
@@ -57,7 +62,7 @@
         async function postNewChatRoom(chatRoomItem) {
             const body = new FormData();
             body.append('title', chatRoomItem.title);
-            // body.append('discription',chatRoomItem.discription);
+            body.append('discription',chatRoomItem.discription);
 
             return fetch('./rooms/add', {
                 method: 'POST',
@@ -66,30 +71,35 @@
         }
 
         const newChatRoomNameInput = document.querySelector('#newChatRoomName');
-        const newChatRoomCreateButton = document.querySelector('#newChatRoomButton')
+        const newChatRoomDiscriptionText = document.querySelector('#newChatRoomDiscription');
+        const newChatRoomCreateButton = document.querySelector('#newChatRoomButton');
 
         newChatRoomCreateButton.addEventListener('click', (event) => {
             const title = newChatRoomNameInput.value;
+            const discription = newChatRoomDiscriptionText.value;
 
-            if(title) {
-                postNewChatRoom({title}).then((item) => fetchChatRoomIndex());
+            if(title && discription) {
+                postNewChatRoom({title},{discription}).then((item) => fetchChatRoomIndex());
             }
         });
 
         //ルームクリック時のアクション
-        const enterChatRoom = document.querySelector('.chatroom');
-        enterChatRoom.addEventListener('click', (event) => {
-            const userName = prompt('what name?', '');
 
-        //userのpost
-            return fetch('../api/v1/add', {
-                method: 'POST',
-                userName
-            }).then((response) => response.json());
-        })
+        async function getElementClass() {
+            const enterChatRooms = document.querySelectorAll('.chatroom');
+            for(let enterRoom of enterChatRooms){
+                enterRoom.addEventListener('click', (event) => {
+                const userName = prompt('what name?', '');
 
-        //初回の読み込み
-        fetchChatRoomIndex();
+                //userのpost
+                return fetch('../api/v1/add', {
+                    method: 'POST',
+                    userName
+                }).then((response) => response.json());
+            })
+            }
+        }
+
     </script>
 </body>
 </html>

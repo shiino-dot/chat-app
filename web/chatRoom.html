@@ -11,14 +11,40 @@
     <div>
         <div id="post-content-lists"></div>    
     </div>
-    <input type="text" id="new-post-content"><button id="new-post-content-submit">送信</button>
+        <input type="text" id="new-post-content"><button id="new-post-content-submit">送信</button>
 
     <div>
         <button id="delete-user">退会する</button>
     </div>
 
-
+    <script type="text/javascript" src="/socket.io/socket.io.js"></script>
     <script>
+        var socket = io.connect();
+
+        document.querySelector('#new-post-content-submit').addEventListener('click',(e) => {
+
+            const msg = document.querySelector('#new-post-content').value;
+            if( msg === ''){
+                return(false);
+            }
+
+            //socketサーバへ送信
+            socket.emit('message', {text: msg});
+
+            msg.value = '';
+        });
+
+        socket.on('message-post', (msg) => {
+            const list = document.querySelector('#post-content-lists');
+            const p = document.createElement('p');
+            p.innerHTML = `${msg.text}`;
+            list.appendChild(p);
+        });
+
+
+        //Idの取得
+        const Id = location.href.slice(28);
+
         //chatContentの表示
         function renderChatContent(chatRoomContent) {
             const chatContainer = document.querySelector('#post-content-lists');
@@ -40,7 +66,7 @@
 
         //chatRoomContentの取得
         async function fetchChatContent() {
-            return fetch('../api/v1/list')
+            return fetch(`../rooms/${Id}/info`)
                 .then((response) => response.json())
                 .then((chatRoomContent) => {
                     renderChatContent(chatRoomContent);
@@ -49,7 +75,7 @@
 
         //chatRoomUserの取得
         async function fetchChatUsers() {
-            return fetch('../api/v1/list')
+            return fetch(`../rooms/${Id}/info`)
                 .then((response) => response.json())
                 .then((chatRoomUsers) => {
                     renderChatContent(chatRoomUsers);
@@ -62,10 +88,11 @@
             body.append('content', chatItem.content);
             body.append('postUserName',chatItem.postUserName);
 
-            return fetch('../api/v1/add', {
+            return fetch(`../rooms/${Id}/add`, {
                 method: 'POST',
                 body
-            }).then((response) => response.json());
+            })
+            .then((response) => response.json());
         }
 
         //postの処理
@@ -88,7 +115,7 @@
         //delete-userの処理
         function deleteUser(event) {
 
-            fetch(`../api/v1/item`, {method: 'DELETE'})
+            fetch(`../rooms/${Id}/info`, {method: 'DELETE'})
                 .then(() => fetchChatUsers())
                 .then(() => location.href='/')
         }

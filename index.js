@@ -1,41 +1,49 @@
 //モジュールを読み込む
-const express = require('express');
+const app = require('express')();
+const server = require('http').createServer(app);
+const socketIo = require("socket.io");
+const io = socketIo.listen(server);
+
 const multer = require('multer');
 const { v4: uuidv4 } = require('uuid');
 
-//appを生成する
-const app = express();
+
 app.use(multer().none()); 
-app.use(express.static('web'));
-
-
-// //ルームへのアクセス
-app.get('/rooms/1' , (req, res) => {
-    //chatroomのhtmlとcontentの取得
-    res.sendFile(__dirname + '/web/chatRoom.html') && res.json(chatRoomContent);
-});
-
 
 //chatRoom一覧
 const chatRoomIndex = [];
 const Id = uuidv4();
 
+//socket.ioの接続
+io.on('connection',(socket) => {
+    console.log('chatRoom connected');
+
+    socket.on('message',(msg) => {
+        io.emit('message-post', msg);
+    });
+});
+
+app.get("/", (req, res) => {
+    res.sendFile(__dirname + "/web/index.html");
+});
+
+
 //ルームの追加
 app.get('/rooms/index', (req, res) => {
-     res.json(chatRoomIndex);
+    res.json(chatRoomIndex);
 });
 
 app.post('/rooms/add', (req, res) => {
     const chatRoomData = req.body;
     const chatRoomTitle = chatRoomData.title;
-    // const chatRoomDiscription = chatRoomData.discription;
+    const chatRoomDiscription = chatRoomData.discription;
 
 
 
     const chatRoomItem = {
         Id,
-        title: chatRoomTitle
-        // discription: chatRoomDiscription
+        title: chatRoomTitle,
+        discription: chatRoomDiscription
     };
 
     chatRoomIndex.push(chatRoomItem);
@@ -45,11 +53,11 @@ app.post('/rooms/add', (req, res) => {
     res.json(chatRoomItem);
 });
 
+
+//roomへのアクセス
 app.get(`/rooms/${Id}`, (req, res) => {
     res.sendFile(__dirname + '/web/chatRoom.html');
 });
-
-
 
 
 //chatの内容
@@ -57,13 +65,13 @@ const chatRoomContent = [];
 const chatRoomUsers = [];
 
 //chatの内容の取得
-app.get('/api/v1/list', (req, res) => {
+app.get(`/rooms/${Id}/info`, (req, res) => {
 
     res.json(chatRoomContent) && res.json(chatRoomUsers);
 });
 
 //chatでの投稿
-app.post('/api/v1/add', (req, res) => {
+app.post(`/rooms/${Id}/add`, (req, res) => {
     const chatData = req.body;
     const chatContent = chatData.content;
     const userName = req.userName;
@@ -97,7 +105,7 @@ app.post('/api/v1/add', (req, res) => {
 });
 
 //userの削除
-app.delete('/api/v1/item', (req, res) => {
+app.delete(`/rooms/${Id}/add`, (req, res) => {
     const index = chatRoomUsers.findIndex((item) => item.id == req.params.id);
 
     if(index >= 0) {
@@ -106,7 +114,7 @@ app.delete('/api/v1/item', (req, res) => {
     }
 
     res.sendStatus(200);
-})
+});
 
 // ポート3000でサーバを立てる
-app.listen(3000, () => console.log('ChatApp listening on port 3000'));
+server.listen(3000, () => console.log('ChatApp listening on port 3000'));
