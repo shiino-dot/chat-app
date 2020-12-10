@@ -6,7 +6,8 @@
     <title>chatroom</title>
 </head>
 <body>
-    <h1>welcome to chatroom</h1>
+    <h1 id="room_title">welcome to </h1>
+    <div id="room_discription">部屋説明</div>
     <p id='chatroom-counter'></p>
     <ul id="msglist"></ul>
     <form id="form-post">
@@ -26,21 +27,19 @@
         socket.on('connect', ()=> {
             socket.emit('fetch message', id);
             socket.emit('join');
-            user_name = prompt('ユーザ名を入力','');
-            if (user_name == undefined){
-                socket.emit('disconnect', () => {
-                    location.href = '/';
-                });
+            user_name = prompt('ユーザ名を入力');
+            if (user_name == null || user_name == ''){
+                alert('ユーザ名を入力してください');
+                location.href = '/';
+                socket.emit('disconnect', () => {});
             }
         });
-        
 
         socket.on('chat message init',(messages) => {
             console.log(messages);
             if(messages){
                 messages.forEach((chat_msg) => {
                     const list = document.querySelector('#msglist');
-                    list.innerHTML = '';
                     const li = document.createElement('li');
                     li.innerHTML = chat_msg.message + ':' + chat_msg.name;
                     list.appendChild(li);
@@ -48,11 +47,9 @@
             }
         });
 
-
         socket.on('change', function(o){
             document.getElementById('chatroom-counter').innerHTML = o.count + '人';
         });
-
 
         //messageの投稿
         document.querySelector('#form-post').addEventListener('submit', (event) => {
@@ -61,6 +58,7 @@
             //内容の取得
             const msg = document.querySelector('#msg');
             if (msg.value === ''){
+                res.status(500);
                 return(false);
             }
 
@@ -89,6 +87,35 @@
             socket.emit('disconnect', {});
         });
 
+        //部屋情報
+        function RoomInfo() {
+            return fetch('../rooms/index')
+                .then((response) => response.json())
+                .then((chatRoomIndex) => {
+                    renderRoomInfo(chatRoomIndex);
+                })
+        };
+
+        function renderRoomInfo(chatRoomIndex) {
+            const roomTitle = document.querySelector('#room_title');
+            const roomDiscription = document.querySelector('#room_discription');
+
+            const label = document.createElement('label');
+            const p = document.createElement('p');
+
+            //タイトルの追加
+            const title = new Text(chatRoomIndex[id-1].title);
+            label.appendChild(title);
+            roomTitle.appendChild(label);
+
+            //説明文の追加
+            const discription = new Text(chatRoomIndex[id-1].discription);
+            p.appendChild(discription);
+            roomDiscription.appendChild(p);
+        };
+
+        //初回起動
+        RoomInfo();
     </script>
 
 </body>

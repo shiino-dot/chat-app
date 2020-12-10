@@ -3,12 +3,12 @@ const server = require('http').createServer(app);
 const io = require("socket.io")(server);
 
 const multer = require('multer');
-const { v4: uuidv4 } = require('uuid');
 
 app.use(multer().none()); 
 
 //ルートの設定
 app.get('/', (req, res) => {
+    res.status('200');
     res.sendFile(__dirname + "/web/index.html");
 });
 
@@ -25,6 +25,7 @@ app.get('/rooms/index', (req, res) => {
         {Id: 2, title:'room2', discription:'ミーティング' },
     ];
 
+    res.status('200');
     res.json(chatRoomIndex);
 });
 
@@ -48,7 +49,7 @@ io.on('connection', (socket) => {
     });
 
     socket.on('fetch message', (room_id) => {
-        io.emit('chat message init', messages[room_id]);
+        io.to(socket.id).emit('chat message init', messages[room_id]);
     })
     
 
@@ -70,10 +71,6 @@ io.on('connection', (socket) => {
         });
     });
 });
-
-
-
-
 
 // ポート3000でサーバを立てる
 server.listen(3000, () => console.log('ChatApp listening on port 3000'));
