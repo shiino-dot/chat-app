@@ -1,129 +1,95 @@
 <!DOCTYPE html>
-<html lang="js">
+<html lang="ja">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>chatroom</title>
 </head>
 <body>
-    <h1 id="chat-title">welcome to </h1>
-    <p id='online-user'>現在の参加数：</p>
-    <p id="roomDiscription">部屋の説明：</p>
-    <div>
-        <div id="post-content-lists"></div>    
-    </div>
-        <input type="text" id="new-post-content"><button id="new-post-content-submit">送信</button>
+    <h1>welcome to chatroom</h1>
+    <p id='chatroom-counter'></p>
+    <ul id="msglist"></ul>
+    <form id="form-post">
+        <input type="text" id="msg">
+        <button>送信</button>
+    </form>
 
-    <div>
-        <button id="delete-user">退会する</button>
-    </div>
-
+    <button id="leave-button">退会する</button>
+    
+    <script src="/socket.io/socket.io.js"></script>
     <script>
-        //titleの取得
-        async function fetchChatRoomInfo() {
-            return fetch(`../rooms/index`)
-                .then((response) => response.json())
-                .then((chatRoomIndex) => {
-                    getChatRoomInfo(chatRoomIndex)
-                })
-                .then(console.log('200 OK! chatroom conected!!'))
-        }
+        const socket = io();
+        let user_name;
+        let id = location.href.slice(27);
 
-        function getChatRoomInfo(chatRoomIndex) {
-            const titleContainer = document.querySelector('#chat-title');
-            const discriptionContainer = document.querySelector('#roomDiscription');
-
-            const title_label = document.createElement('label');
-            const title = new Text(chatRoomIndex[0].title);
-            const discription_label = document.createElement('label');
-            const discription = new Text(chatRoomIndex[0].discription);
-
-            title_label.appendChild(title);
-            discription_label.appendChild(discription);
-
-            titleContainer.appendChild(title_label);
-            discriptionContainer.appendChild(discription_label);
-        }
-
-        //chatContentの表示
-        function renderChatContent(chatRoomContent) {
-            const chatContainer = document.querySelector('#post-content-lists');
-
-            chatContainer.innerHTML = '';
-
-            //投稿内容のjsonの取り出し
-            for(const message of chatRoomContent) {
-                const p = document.createElement('p');
-                const label = document.createElement('label');
-                const text = new Text(message.content);
-
-                label.appendChild(text);
-                p.appendChild(label);
-                chatContainer.appendChild(p);
+        
+        socket.on('connect', ()=> {
+            socket.emit('fetch message', id);
+            socket.emit('join');
+            user_name = prompt('ユーザ名を入力','');
+            if (user_name == undefined){
+                socket.emit('disconnect', () => {
+                    location.href = '/';
+                });
             }
+        });
+        
 
-        }
-
-        //chatRoomContentの取得
-        async function fetchChatContent() {
-            return fetch(`../rooms/1/info`)
-                .then((response) => response.json())
-                .then((chatRoomContent) => {
-                    renderChatContent(chatRoomContent);
-                })
-        }
-
-        //chatRoomUserの取得
-        async function fetchChatUsers() {
-            return fetch(`../rooms/1/info`)
-                .then((response) => response.json())
-                .then((chatRoomUsers) => {
-                    renderChatContent(chatRoomUsers);
-                })
-        }
-
-        //chatContentのpost
-        async function postNewChatContent(chatItem) {
-            const body = new FormData();
-            body.append('content', chatItem.content);
-            body.append('postUserName',chatItem.postUserName);
-
-            return fetch(`../rooms/1/add`, {
-                method: 'POST',
-                body
-            })
-            .then((response) => response.json());
-        }
-
-        //postの処理
-        const newChatItemContentInput = document.querySelector('#new-post-content');
-        const newChatSubmitButton = document.querySelector('#new-post-content-submit');
-
-        newChatSubmitButton.addEventListener('click', (event) => {
-            const content = newChatItemContentInput.value;
-
-            if(content) {
-                postNewChatContent({content}).then((item) => fetchChatContent());
+        socket.on('chat message init',(messages) => {
+            console.log(messages);
+            if(messages){
+                messages.forEach((chat_msg) => {
+                    const list = document.querySelector('#msglist');
+                    list.innerHTML = '';
+                    const li = document.createElement('li');
+                    li.innerHTML = chat_msg.message + ':' + chat_msg.name;
+                    list.appendChild(li);
+                });
             }
         });
 
 
-        //delete-buttonの取得
-        const deleteUserButton = document.querySelector('#delete-user');
-        deleteUserButton.addEventListener('click', deleteUser);
+        socket.on('change', function(o){
+            document.getElementById('chatroom-counter').innerHTML = o.count + '人';
+        });
 
-        //delete-userの処理
-        function deleteUser(event) {
 
-            fetch(`../rooms/1/info`, {method: 'DELETE'})
-                .then(() => fetchChatUsers())
-                .then(() => location.href='/')
-                .then(console.log('deleted user')
-                )
-        }
+        //messageの投稿
+        document.querySelector('#form-post').addEventListener('submit', (event) => {
+            event.preventDefault();
 
-        //初回のchatcontentの読み込み
-        fetchChatContent();
-        fetchChatRoomInfo();
+            //内容の取得
+            const msg = document.querySelector('#msg');
+            if (msg.value === ''){
+                return(false);
+            }
+
+            //サーバに送信
+            socket.emit('chat-message', {
+                text: msg.value,
+                room_id: id,
+                name: user_name
+            });
+            msg.value = '';
+        });
+
+        //msgの投稿
+        socket.on('message', function(msg){
+            const list = document.querySelector('#msglist');
+            const li = document.createElement('li');
+            li.innerHTML = `${msg.text}` + ':' + `${msg.name}`;
+            list.appendChild(li);
+        });
+
+        //退室する
+        document.querySelector('#leave-button').addEventListener('click', (event) => {
+            event.preventDefault();
+            location.href = '/';
+
+            socket.emit('disconnect', {});
+        });
+
     </script>
+
 </body>
 </html>
