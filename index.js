@@ -28,6 +28,7 @@ app.get('/rooms/index', (req, res) => {
 
     res.status('200');
     res.json(chatRoomIndex);
+    
 });
 
 
